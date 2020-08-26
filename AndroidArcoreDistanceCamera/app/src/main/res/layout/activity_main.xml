@@ -26,7 +26,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="8dp"
+        android:text="Status"
         android:textSize="28sp"
-        android:text="Status:" />
+        android:layout_gravity="center"
+        android:layout_marginTop="250dp"
+
+        />
 
 </FrameLayout>

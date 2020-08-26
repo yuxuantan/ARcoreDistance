@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
+import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Pose;
 import com.google.ar.sceneform.AnchorNode;
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        // Check if phone is AR compatible
         if (!checkIsSupportedDeviceOrFinish(this)) {
             Toast.makeText(getApplicationContext(), "Device not supported", Toast.LENGTH_LONG).show();
         }
@@ -51,11 +54,16 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
         setContentView(R.layout.activity_main);
 
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+        // Change settings to detect both horizontal and vertical planes
+
         tvDistance = findViewById(R.id.tvDistance);
         tvStatus = findViewById(R.id.tvStatus);
 
+
+        // Create 3D cube shaped model
         initModel();
 
+        // When tap on plane
         arFragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
             if (cubeRenderable == null)
                 return;
@@ -65,12 +73,14 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
             AnchorNode anchorNode = new AnchorNode(anchor);
             anchorNode.setParent(arFragment.getArSceneView().getScene());
 
+            // Replace old anchor with new anchor
             clearAnchor();
 
             currentAnchor = anchor;
             currentAnchorNode = anchorNode;
 
 
+            //create visualization
             TransformableNode node = new TransformableNode(arFragment.getTransformationSystem());
             node.setRenderable(cubeRenderable);
             node.setParent(anchorNode);
@@ -125,6 +135,11 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
 
     @Override
     public void onUpdate(FrameTime frameTime) {
+//TODO - change config elsewhere (on session initialize)
+        Config config = arFragment.getArSceneView().getSession().getConfig();
+        config.setPlaneFindingMode(Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL);
+        arFragment.getArSceneView().getSession().configure(config);
+
         Frame frame = arFragment.getArSceneView().getArFrame();
 
         Log.d("API123", "onUpdateframe... current anchor node " + (currentAnchorNode == null));
@@ -141,11 +156,14 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
             ///Compute the straight-line distance.
             float distanceMeters = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
 //            tvDistance.setText("Distance from camera: " + distanceMeters + " metres");
-            if(distanceMeters<1){
+            if(distanceMeters < 1){
                 tvStatus.setText("Status: TOO NEAR!");
+                tvStatus.setTextColor(android.graphics.Color.parseColor("#FF0000"));
             }
             else{
                 tvStatus.setText("Status: Safe Distance");
+                tvStatus.setTextColor(android.graphics.Color.parseColor("#00FF00"));
+
             }
             tvDistance.setText("Distance from camera: " + distanceMeters + " metres");
 
